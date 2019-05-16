@@ -14,10 +14,10 @@ export default {
 	]
 };
 
-function addHashBang() {
+function addHashBang () {
 	return {
 		name: 'add-hash-bang',
-		renderChunk(code) {
+		renderChunk (code) {
 			return `#!/usr/bin/env node\n${code}`;
 		}
 	};
