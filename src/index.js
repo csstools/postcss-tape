@@ -6,20 +6,8 @@ import getOptions from './lib/get-options';
 import path from 'path';
 import postcss8 from 'postcss';
 
-function process(plugin, sourceCSS, processOptions, pluginOptions) {
-	// Support postcss 8 style plugins
-	if (typeof plugin === 'function' && Object(plugin).postcss === true) {
-		return postcss8([ plugin(pluginOptions) ]).process(sourceCSS, processOptions)
-	}
-
-	// Support postcss 7 style plugins
-	const testPlugin = typeof Object(plugin).process === 'function'
-		? plugin
-	: typeof plugin === 'function'
-		? { process: plugin }
-	: Object(plugin).postcssPlugin
-
-	return testPlugin.process(sourceCSS, processOptions, pluginOptions)
+function isPostcss8Plugin(plugin) {
+	return typeof plugin === 'function' && Object(plugin).postcss === true;
 }
 
 getOptions().then(
@@ -41,11 +29,19 @@ getOptions().then(
 			const processOptions = Object.assign({ from: sourcePath, to: resultPath }, test.processOptions);
 			const pluginOptions = test.options;
 
-			let plugin = test.plugin || options.plugin;
-			if (plugin.default) {
-				plugin = plugin.default;
+			let rawPlugin = test.plugin || options.plugin;
+			if (rawPlugin.default) {
+				rawPlugin = rawPlugin.default;
 			}
-			const pluginName = Object(plugin.postcss).postcssPlugin || 'postcss';
+			const plugin = isPostcss8Plugin(rawPlugin)
+				? rawPlugin(pluginOptions)
+			: typeof Object(rawPlugin).process === 'function'
+				? rawPlugin
+			: typeof rawPlugin === 'function'
+				? { process: rawPlugin }
+			: Object(rawPlugin).postcssPlugin;
+
+			const pluginName = plugin.postcssPlugin || Object(rawPlugin.postcss).postcssPlugin || 'postcss';
 
 			log.wait(pluginName, test.message, options.ci);
 
@@ -57,7 +53,9 @@ getOptions().then(
 				const expectCSS = await safelyReadFile(expectPath);
 				const sourceCSS = await readOrWriteFile(sourcePath, expectCSS);
 
-				const result = await process(plugin, sourceCSS, processOptions, pluginOptions);
+				const result = isPostcss8Plugin(rawPlugin)
+					? await postcss8([ plugin ]).process(sourceCSS, processOptions)
+				: await plugin.process(sourceCSS, processOptions, pluginOptions);
 				const resultCSS = result.css;
 
 				if (options.fix) {
