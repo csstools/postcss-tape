@@ -15,7 +15,9 @@ node_js:
 jobs:
   include:
     - node_js: 8
-      before_script: npm install postcss@7
+      before_script: |
+        npm install postcss@7
+        npm run pretest:tape
       script: npm run test:tape:7 -- --ci true
 
 install:
