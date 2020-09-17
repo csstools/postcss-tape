@@ -4,6 +4,23 @@ import * as log from './lib/log';
 import getErrorMessage from './lib/get-error-message';
 import getOptions from './lib/get-options';
 import path from 'path';
+import postcss8 from 'postcss';
+
+function process(plugin, sourceCSS, processOptions, pluginOptions) {
+	// Support postcss 8 style plugins
+	if (typeof plugin === 'function' && Object(plugin).postcss === true) {
+		return postcss8([ plugin(pluginOptions) ]).process(sourceCSS, processOptions)
+	}
+
+	// Support postcss 7 style plugins
+	const testPlugin = typeof Object(plugin).process === 'function'
+		? plugin
+	: typeof plugin === 'function'
+		? { process: plugin }
+	: Object(plugin).postcssPlugin
+
+	return testPlugin.process(sourceCSS, processOptions, pluginOptions)
+}
 
 getOptions().then(
 	async options => {
@@ -12,12 +29,6 @@ getOptions().then(
 		// runner
 		for (const name in options.config) {
 			const test = options.config[name];
-
-			const testPlugin = typeof Object(test.plugin).process === 'function'
-				? test.plugin
-			: typeof test.plugin === 'function'
-				? { process: test.plugin }
-			: options.plugin;
 
 			const testBase = name.split(':')[0];
 			const testFull = name.split(':').join('.');
@@ -30,7 +41,11 @@ getOptions().then(
 			const processOptions = Object.assign({ from: sourcePath, to: resultPath }, test.processOptions);
 			const pluginOptions = test.options;
 
-			const pluginName = Object(testPlugin.postcss).postcssPlugin || 'postcss';
+			let plugin = test.plugin || options.plugin;
+			if (plugin.default) {
+				plugin = plugin.default;
+			}
+			const pluginName = Object(plugin.postcss).postcssPlugin || 'postcss';
 
 			log.wait(pluginName, test.message, options.ci);
 
@@ -42,7 +57,7 @@ getOptions().then(
 				const expectCSS = await safelyReadFile(expectPath);
 				const sourceCSS = await readOrWriteFile(sourcePath, expectCSS);
 
-				const result = await testPlugin.process(sourceCSS, processOptions, pluginOptions);
+				const result = await process(plugin, sourceCSS, processOptions, pluginOptions);
 				const resultCSS = result.css;
 
 				if (options.fix) {

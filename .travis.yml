@@ -12,6 +12,12 @@ node_js:
   - 10
   - 8
 
+jobs:
+  include:
+    - node_js: 8
+      after_install: npm install postcss@7
+      script: npm run test:tape:7 -- --ci true
+
 install:
   - git config --global core.autocrlf false
   - git checkout -qf ${TRAVIS_COMMIT}
