@@ -8,16 +8,19 @@ os:
   - osx
 
 node_js:
+  - 14
   - 12
   - 10
-  - 8
 
 jobs:
   include:
     - node_js: 8
       before_script: |
         npm install postcss@7
+        nvm install 10
+        nvm use 10
         npm run pretest:tape
+        nvm use 8
       script: npm run test:tape:7 -- --ci true
 
 install:
