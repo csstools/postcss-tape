@@ -29,13 +29,17 @@
   "engines": {
     "node": ">=8.0.0"
   },
+  "peerDependencies": {
+    "postcss": "^8.0.5"
+  },
   "devDependencies": {
     "@babel/core": "^7.7.2",
     "@babel/plugin-syntax-dynamic-import": "^7.2.0",
     "@babel/preset-env": "^7.7.1",
     "babel-eslint": "^10.0.3",
     "eslint": "^6.6.0",
-    "rollup": "^1.26.3",
+    "postcss": "^8.0.5",
+    "rollup": "^2.27.1",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-terser": "^5.1.2"
   },
@@ -62,8 +66,5 @@
     "tests",
     "tools",
     "tape"
-  ],
-  "dependencies": {
-    "postcss": "^8.0.5"
-  }
+  ]
 }

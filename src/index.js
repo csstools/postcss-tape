@@ -4,7 +4,11 @@ import * as log from './lib/log';
 import getErrorMessage from './lib/get-error-message';
 import getOptions from './lib/get-options';
 import path from 'path';
-import postcss8 from 'postcss';
+
+async function postcss8(plugins) {
+	const m = await import('postcss');
+	return m.default(plugins);
+}
 
 function isPostcss8Plugin(plugin) {
 	return typeof plugin === 'function' && Object(plugin).postcss === true;
@@ -53,9 +57,13 @@ getOptions().then(
 				const expectCSS = await safelyReadFile(expectPath);
 				const sourceCSS = await readOrWriteFile(sourcePath, expectCSS);
 
-				const result = isPostcss8Plugin(rawPlugin)
-					? await postcss8([ plugin ]).process(sourceCSS, processOptions)
-				: await plugin.process(sourceCSS, processOptions, pluginOptions);
+				let result;
+				if (isPostcss8Plugin(rawPlugin)) {
+					const postcss = await postcss8([ plugin ]);
+					result = await postcss.process(sourceCSS, processOptions);
+				} else {
+					result = await plugin.process(sourceCSS, processOptions, pluginOptions);
+				}
 				const resultCSS = result.css;
 
 				if (options.fix) {
