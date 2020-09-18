@@ -6,8 +6,13 @@ import getOptions from './lib/get-options';
 import path from 'path';
 
 async function postcss8(plugins) {
-	const m = await import('postcss');
-	return m.default(plugins);
+	const pkg = await import('postcss/package.json');
+	if (pkg.version[0] === '8') {
+		const m = await import('postcss');
+		return m.default(plugins);
+	} else {
+		throw new Error(`postcss@8 must be installed, found ${pkg.version}`);
+	}
 }
 
 function isPostcss8Plugin(plugin) {
