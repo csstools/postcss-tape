@@ -1,3 +1,5 @@
+<div align="center">⚠️ PostCSS Tape is deprecated in favor of <a href="https://github.com/csstools/postcss-plugins/tree/main/packages/postcss-tape">@csstools/postcss-tape</a>. ⚠️ </div>
+
 # PostCSS Tape [<img src="http://postcss.github.io/postcss/logo.svg" alt="PostCSS" width="90" height="90" align="right">][PostCSS]
 
 [<img alt="NPM Version" src="https://img.shields.io/npm/v/postcss-tape.svg" height="20">][npm-url]
